@@ -1,17 +1,63 @@
-import { useState } from 'react';
-import { Plus, Play, History, Dumbbell, RotateCcw, LogOut, Activity } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Plus, Play, History, Dumbbell, RotateCcw, LogOut, Activity, Share2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useWorkoutTemplates } from '@/hooks/useWorkoutStore';
 import { getActiveWorkout } from '@/pages/ActiveWorkout';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
+import type { WorkoutTemplate } from '@/types/workout';
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const { templates, deleteTemplate } = useWorkoutTemplates();
+  const { user } = useAuth();
   const { signOut } = useAuth();
   const [holdId, setHoldId] = useState<string | null>(null);
   const activeWorkout = getActiveWorkout();
+
+  useEffect(() => {
+    const pendingImport = localStorage.getItem('pending_import_data');
+    if (pendingImport && user) {
+      localStorage.removeItem('pending_import_data');
+      navigate(`/import?data=${pendingImport}`);
+    }
+  }, [user, navigate]);
+
+  const handleShare = (template: WorkoutTemplate) => {
+    try {
+      // Create a simplified version for sharing (no IDs, no timestamps)
+      const shareData = {
+        name: template.name,
+        exercises: template.exercises.map(ex => ({
+          name: ex.name,
+          targetSets: ex.targetSets,
+          targetReps: ex.targetReps
+        }))
+      };
+      
+      const encodedData = btoa(encodeURIComponent(JSON.stringify(shareData)));
+      const shareUrl = `${window.location.origin}/import?data=${encodedData}`;
+
+      if (navigator.share) {
+        navigator.share({
+          title: `Meu treino: ${template.name}`,
+          text: `Confira meu treino "${template.name}" no Caderninho!`,
+          url: shareUrl,
+        }).catch(() => {
+          // Fallback to clipboard if share was cancelled or failed
+          navigator.clipboard.writeText(shareUrl);
+          toast.success('Link do treino copiado!');
+        });
+      } else {
+        navigator.clipboard.writeText(shareUrl);
+        toast.success('Link do treino copiado!');
+      }
+    } catch (error) {
+      console.error('Error sharing workout:', error);
+      toast.error('Erro ao gerar link de compartilhamento');
+    }
+  };
 
   return (
     <div className="min-h-screen pb-24">
@@ -99,6 +145,14 @@ const Dashboard = () => {
                   onClick={() => navigate(`/edit/${template.id}`)}
                 >
                   Editar
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="px-3"
+                  onClick={() => handleShare(template)}
+                >
+                  <Share2 className="h-4 w-4" />
                 </Button>
                 {holdId === template.id && (
                   <Button
