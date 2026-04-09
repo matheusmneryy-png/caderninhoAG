@@ -1,9 +1,10 @@
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Dumbbell, History, Activity, TrendingUp, TrendingDown, Minus, Clock, Zap } from 'lucide-react';
 import { useWorkoutLogs } from '@/hooks/useWorkoutStore';
 import { formatDuration, calculateProgression } from '@/lib/progression';
 import type { ProgressionSuggestion } from '@/types/workout';
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 
 const SuggestionIcon = ({ reason }: { reason: string }) => {
   if (reason === 'increase') return <TrendingUp className="h-5 w-5 text-valid mt-0.5 shrink-0" />;
@@ -13,7 +14,9 @@ const SuggestionIcon = ({ reason }: { reason: string }) => {
 
 const StatsPage = () => {
   const navigate = useNavigate();
-  const { logs, getLastPerformance } = useWorkoutLogs();
+  const { logs, getLastPerformance, getExerciseHistory } = useWorkoutLogs();
+
+  const [selectedChartExercise, setSelectedChartExercise] = useState<string>('');
 
   const finishedLogs = useMemo(() => logs.filter(l => l.finishedAt), [logs]);
 
@@ -25,7 +28,7 @@ const StatsPage = () => {
     finishedLogs.forEach(log => {
       const start = new Date(log.startedAt).getTime();
       const end = new Date(log.finishedAt!).getTime();
-      totalDuration += (end - start) / 1000;
+      totalDuration += Math.floor((end - start) / 1000);
 
       (log.exercises || []).forEach(ex => {
         (ex.sets || []).forEach(set => {
@@ -80,6 +83,29 @@ const StatsPage = () => {
     return suggs;
   }, [finishedLogs, getLastPerformance]);
 
+  const uniqueExercises = useMemo(() => {
+    return Array.from(new Set(finishedLogs.flatMap(l => l.exercises || []).map(e => e.exerciseName)));
+  }, [finishedLogs]);
+
+  useEffect(() => {
+    if (!selectedChartExercise && uniqueExercises.length > 0) {
+      setSelectedChartExercise(uniqueExercises[0]);
+    }
+  }, [uniqueExercises, selectedChartExercise]);
+
+  const chartData = useMemo(() => {
+    if (!selectedChartExercise) return [];
+    const history = getExerciseHistory(selectedChartExercise);
+    return [...history].reverse().map(entry => {
+      const validSets = entry.sets.filter(s => s.type === 'valid');
+      const maxWeight = validSets.length > 0 ? Math.max(...validSets.map(s => s.weight)) : 0;
+      return {
+        date: new Date(entry.date).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' }),
+        weight: maxWeight
+      };
+    }).filter(d => d.weight > 0);
+  }, [selectedChartExercise, getExerciseHistory]);
+
   return (
     <div className="min-h-screen pb-24">
       {/* Header */}
@@ -113,6 +139,71 @@ const StatsPage = () => {
             <p className="text-2xl font-bold text-foreground">{formatDuration(stats.totalDuration)}</p>
           </div>
         </div>
+
+        {/* Progression Chart */}
+        {uniqueExercises.length > 0 && (
+          <div className="bg-card rounded-xl border border-border p-4 animate-slide-up" style={{ animationDelay: '0.1s' }}>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-semibold text-foreground text-sm flex items-center gap-2">
+                <Activity className="h-4 w-4 text-primary" />
+                Evolução de Carga
+              </h3>
+              <select 
+                className="bg-secondary text-xs text-foreground py-1 px-2 rounded-md border-0 ring-0 max-w-[140px] truncate"
+                value={selectedChartExercise}
+                onChange={(e) => setSelectedChartExercise(e.target.value)}
+              >
+                {uniqueExercises.map(ex => (
+                  <option key={ex} value={ex}>{ex}</option>
+                ))}
+              </select>
+            </div>
+            
+            {chartData.length < 2 ? (
+              <div className="h-44 flex flex-col items-center justify-center text-center px-4 bg-secondary/30 rounded-lg">
+                <p className="text-xs text-muted-foreground">Registre este exercício em pelo menos 2 treinos para visualizar seu progresso em gráfico.</p>
+              </div>
+            ) : (
+              <div className="h-44 w-full -ml-3">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={chartData}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#333" opacity={0.3} />
+                    <XAxis 
+                      dataKey="date" 
+                      stroke="#888888" 
+                      fontSize={10} 
+                      tickLine={false} 
+                      axisLine={false}
+                      dy={10}
+                    />
+                    <YAxis
+                      stroke="#888888"
+                      fontSize={10}
+                      tickLine={false}
+                      axisLine={false}
+                      tickFormatter={(value) => `${value}kg`}
+                      width={40}
+                    />
+                    <Tooltip 
+                      contentStyle={{ backgroundColor: '#111', borderRadius: '8px', border: '1px solid #333' }}
+                      itemStyle={{ color: '#10b981', fontSize: '12px', fontWeight: 'bold' }}
+                      labelStyle={{ color: '#888', fontSize: '10px', marginBottom: '4px' }}
+                      formatter={(value: number) => [`${value}kg`, 'Carga Máx.']}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="weight"
+                      stroke="#10b981"
+                      strokeWidth={3}
+                      dot={{ r: 4, fill: "#10b981", strokeWidth: 2, stroke: "#111" }}
+                      activeDot={{ r: 6, fill: "#10b981" }}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Suggestions & Insights */}
         <div>
