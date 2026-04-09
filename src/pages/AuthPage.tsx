@@ -4,7 +4,6 @@ import { Dumbbell, Mail, Lock, User, Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { supabase } from '@/integrations/supabase/client';
-import { lovable } from '@/integrations/lovable';
 import { toast } from 'sonner';
 
 const AuthPage = () => {
@@ -23,7 +22,12 @@ const AuthPage = () => {
     try {
       if (isLogin) {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) throw error;
+        if (error) {
+          if (error.message.toLowerCase().includes("invalid login credentials")) {
+             throw new Error("Credenciais inválidas. Verifique se o e-mail foi confirmado ou se a senha está correta.");
+          }
+          throw error;
+        }
         navigate('/');
       } else {
         const { error } = await supabase.auth.signUp({
@@ -35,7 +39,7 @@ const AuthPage = () => {
           },
         });
         if (error) throw error;
-        toast.success('Conta criada! Verifique seu e-mail para confirmar.');
+        toast.success('Conta criada! Verifique seu e-mail (e a caixa de spam) para confirmar.');
       }
     } catch (error: any) {
       toast.error(error.message || 'Erro na autenticação');
@@ -47,13 +51,18 @@ const AuthPage = () => {
   const handleGoogleSignIn = async () => {
     setLoading(true);
     try {
-      const result = await lovable.auth.signInWithOAuth('google', {
-        redirect_uri: window.location.origin,
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: window.location.origin,
+        }
       });
-      if (result.error) {
+      if (error) {
         toast.error('Erro ao entrar com Google');
+        console.error(error);
       }
-    } catch {
+    } catch (error) {
+      console.error(error);
       toast.error('Erro ao entrar com Google');
     } finally {
       setLoading(false);
