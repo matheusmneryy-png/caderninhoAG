@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Play, History, Dumbbell, RotateCcw, LogOut, Activity, Share2 } from 'lucide-react';
+import { Plus, Play, History, Dumbbell, RotateCcw, LogOut, Activity, Share2, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useWorkoutTemplates } from '@/hooks/useWorkoutStore';
 import { getActiveWorkout } from '@/pages/ActiveWorkout';
@@ -13,7 +13,6 @@ const Dashboard = () => {
   const { templates, deleteTemplate } = useWorkoutTemplates();
   const { user } = useAuth();
   const { signOut } = useAuth();
-  const [holdId, setHoldId] = useState<string | null>(null);
   const activeWorkout = getActiveWorkout();
 
   useEffect(() => {
@@ -110,8 +109,6 @@ const Dashboard = () => {
             <div
               key={template.id}
               className="bg-card rounded-xl p-4 card-hover border border-border"
-              onTouchStart={() => setHoldId(template.id)}
-              onTouchEnd={() => setHoldId(null)}
             >
               <div className="flex items-center justify-between mb-2">
                 <h3 className="font-semibold text-foreground">{template.name}</h3>
@@ -149,20 +146,24 @@ const Dashboard = () => {
                 <Button
                   size="sm"
                   variant="outline"
+                  className="px-3 text-destructive hover:bg-destructive/10 hover:text-destructive border-border"
+                  onClick={() => {
+                    if (window.confirm(`Deseja realmente excluir o treino "${template.name}"?`)) {
+                      deleteTemplate(template.id);
+                      toast.success('Treino excluído');
+                    }
+                  }}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
                   className="px-3"
                   onClick={() => handleShare(template)}
                 >
                   <Share2 className="h-4 w-4" />
                 </Button>
-                {holdId === template.id && (
-                  <Button
-                    size="sm"
-                    variant="destructive"
-                    onClick={() => deleteTemplate(template.id)}
-                  >
-                    Excluir
-                  </Button>
-                )}
               </div>
             </div>
           ))
