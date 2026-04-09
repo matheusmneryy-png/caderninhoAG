@@ -153,7 +153,7 @@ const CreateEditWorkout = () => {
               </div>
               <div className="flex gap-3 pl-7">
                 <div className="flex-1">
-                  <label className="text-[11px] text-muted-foreground mb-1 block">Séries alvo</label>
+                  <label className="text-[11px] text-muted-foreground mb-1 block">Séries válidas</label>
                   <Input
                     type="number"
                     value={ex.targetSets === 0 ? '' : ex.targetSets}
