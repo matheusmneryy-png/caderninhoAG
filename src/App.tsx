@@ -9,6 +9,7 @@ import CreateEditWorkout from "./pages/CreateEditWorkout";
 import ActiveWorkout from "./pages/ActiveWorkout";
 import WorkoutSummary from "./pages/WorkoutSummary";
 import HistoryPage from "./pages/HistoryPage";
+import StatsPage from "./pages/StatsPage";
 import AuthPage from "./pages/AuthPage";
 import NotFound from "./pages/NotFound";
 
@@ -36,6 +37,7 @@ const App = () => (
             <Route path="/workout/:templateId" element={<ProtectedRoute><ActiveWorkout /></ProtectedRoute>} />
             <Route path="/summary/:id" element={<ProtectedRoute><WorkoutSummary /></ProtectedRoute>} />
             <Route path="/history" element={<ProtectedRoute><HistoryPage /></ProtectedRoute>} />
+            <Route path="/stats" element={<ProtectedRoute><StatsPage /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
