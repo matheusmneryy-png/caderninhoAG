@@ -27,7 +27,7 @@ export function clearActiveWorkout() {
 const ActiveWorkout = () => {
   const navigate = useNavigate();
   const { templateId } = useParams();
-  const { templates } = useWorkoutTemplates();
+  const { templates, loading } = useWorkoutTemplates();
   const { addLog, getLastPerformance } = useWorkoutLogs();
 
   const template = templates.find(t => t.id === templateId);
@@ -35,26 +35,31 @@ const ActiveWorkout = () => {
   const [activeExercise, setActiveExercise] = useState<number | null>(null);
 
   // Restore or create workout
-  const [workout, setWorkout] = useState<WorkoutLog>(() => {
+  const [workout, setWorkout] = useState<WorkoutLog | null>(() => {
     const saved = getActiveWorkout();
     if (saved && saved.templateId === templateId) {
       return saved;
     }
-    if (!template) return {} as WorkoutLog;
-    return {
-      id: generateId(),
-      templateId: template.id,
-      templateName: template.name,
-      startedAt: new Date().toISOString(),
-      exercises: template.exercises.map(ex => ({
-        exerciseId: ex.id,
-        exerciseName: ex.name,
-        targetSets: ex.targetSets,
-        targetReps: ex.targetReps,
-        sets: [],
-      })),
-    };
+    return null;
   });
+
+  useEffect(() => {
+    if (!workout && template) {
+      setWorkout({
+        id: generateId(),
+        templateId: template.id,
+        templateName: template.name,
+        startedAt: new Date().toISOString(),
+        exercises: template.exercises.map(ex => ({
+          exerciseId: ex.id,
+          exerciseName: ex.name,
+          targetSets: ex.targetSets,
+          targetReps: ex.targetReps,
+          sets: [],
+        })),
+      });
+    }
+  }, [workout, template]);
 
   // Restore start time
   const startTime = useRef(() => {
@@ -68,7 +73,7 @@ const ActiveWorkout = () => {
 
   // Persist workout state on every change
   useEffect(() => {
-    if (workout.id) {
+    if (workout?.id) {
       localStorage.setItem(ACTIVE_WORKOUT_KEY, JSON.stringify(workout));
     }
   }, [workout]);
@@ -83,6 +88,7 @@ const ActiveWorkout = () => {
 
   const addSet = useCallback((exerciseIdx: number, type: SetType, weight: number, reps: number) => {
     setWorkout(prev => {
+      if (!prev) return prev;
       const exercises = [...prev.exercises];
       const ex = { ...exercises[exerciseIdx] };
       ex.sets = [...ex.sets, {
@@ -99,6 +105,7 @@ const ActiveWorkout = () => {
 
   const removeSet = useCallback((exerciseIdx: number, setId: string) => {
     setWorkout(prev => {
+      if (!prev) return prev;
       const exercises = [...prev.exercises];
       const ex = { ...exercises[exerciseIdx] };
       ex.sets = ex.sets.filter(s => s.id !== setId);
@@ -108,6 +115,7 @@ const ActiveWorkout = () => {
   }, []);
 
   const finishWorkout = () => {
+    if (!workout) return;
     const finished = { ...workout, finishedAt: new Date().toISOString() };
     addLog(finished);
     clearActiveWorkout();
@@ -115,14 +123,20 @@ const ActiveWorkout = () => {
   };
 
   const handleNext = () => {
+    if (!workout) return;
     if (activeExercise !== null && activeExercise < workout.exercises.length - 1) {
       setActiveExercise(activeExercise + 1);
     }
   };
 
-  if (!template) {
-    navigate('/');
-    return null;
+  useEffect(() => {
+    if (!loading && !template) {
+      navigate('/');
+    }
+  }, [loading, template, navigate]);
+
+  if (!workout || !template) {
+    return <div className="min-h-screen flex items-center justify-center"><div className="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full" /></div>;
   }
 
   return (

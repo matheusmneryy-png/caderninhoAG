@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Plus, Trash2, GripVertical } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -11,7 +11,7 @@ import { toast } from 'sonner';
 const CreateEditWorkout = () => {
   const navigate = useNavigate();
   const { id } = useParams();
-  const { templates, addTemplate, updateTemplate } = useWorkoutTemplates();
+  const { templates, loading, addTemplate, updateTemplate } = useWorkoutTemplates();
 
   const existing = id ? templates.find(t => t.id === id) : null;
 
@@ -20,6 +20,27 @@ const CreateEditWorkout = () => {
     existing?.exercises || []
   );
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [initialized, setInitialized] = useState(!id);
+
+  // Sync correctly when editing an existing template and it resolves asynchronously
+  useEffect(() => {
+    if (id && existing && !initialized) {
+      setName(existing.name);
+      setExercises(existing.exercises);
+      setInitialized(true);
+    }
+  }, [id, existing, initialized]);
+
+  useEffect(() => {
+    if (id && !loading && !existing && !initialized) {
+      toast.error('Treino não encontrado');
+      navigate('/');
+    }
+  }, [id, loading, existing, initialized, navigate]);
+
+  if (id && !initialized) {
+    return <div className="min-h-screen flex items-center justify-center"><div className="animate-spin w-8 h-8 border-2 border-primary border-t-transparent rounded-full" /></div>;
+  }
 
   const addExercise = () => {
     setExercises([...exercises, {
