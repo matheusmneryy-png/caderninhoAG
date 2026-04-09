@@ -37,8 +37,11 @@ const ActiveWorkout = () => {
   // Restore or create workout
   const [workout, setWorkout] = useState<WorkoutLog | null>(() => {
     const saved = getActiveWorkout();
-    if (saved && saved.templateId === templateId) {
-      return saved;
+    if (saved && saved.templateId === templateId && Array.isArray(saved.exercises)) {
+      return {
+        ...saved,
+        exercises: saved.exercises.map(ex => ({ ...ex, sets: Array.isArray(ex.sets) ? ex.sets : [] }))
+      };
     }
     return null;
   });
@@ -50,11 +53,11 @@ const ActiveWorkout = () => {
         templateId: template.id,
         templateName: template.name,
         startedAt: new Date().toISOString(),
-        exercises: template.exercises.map(ex => ({
+        exercises: (template.exercises || []).map(ex => ({
           exerciseId: ex.id,
           exerciseName: ex.name,
-          targetSets: ex.targetSets,
-          targetReps: ex.targetReps,
+          targetSets: ex.targetSets || 0,
+          targetReps: ex.targetReps || 0,
           sets: [],
         })),
       });
@@ -88,10 +91,11 @@ const ActiveWorkout = () => {
 
   const addSet = useCallback((exerciseIdx: number, type: SetType, weight: number, reps: number) => {
     setWorkout(prev => {
-      if (!prev) return prev;
+      if (!prev || !prev.exercises) return prev;
       const exercises = [...prev.exercises];
+      if (!exercises[exerciseIdx]) return prev;
       const ex = { ...exercises[exerciseIdx] };
-      ex.sets = [...ex.sets, {
+      ex.sets = [...(ex.sets || []), {
         id: generateId(),
         type,
         weight,
@@ -105,10 +109,11 @@ const ActiveWorkout = () => {
 
   const removeSet = useCallback((exerciseIdx: number, setId: string) => {
     setWorkout(prev => {
-      if (!prev) return prev;
+      if (!prev || !prev.exercises) return prev;
       const exercises = [...prev.exercises];
+      if (!exercises[exerciseIdx]) return prev;
       const ex = { ...exercises[exerciseIdx] };
-      ex.sets = ex.sets.filter(s => s.id !== setId);
+      ex.sets = (ex.sets || []).filter(s => s.id !== setId);
       exercises[exerciseIdx] = ex;
       return { ...prev, exercises };
     });
@@ -123,7 +128,7 @@ const ActiveWorkout = () => {
   };
 
   const handleNext = () => {
-    if (!workout) return;
+    if (!workout || !workout.exercises) return;
     if (activeExercise !== null && activeExercise < workout.exercises.length - 1) {
       setActiveExercise(activeExercise + 1);
     }
@@ -161,12 +166,12 @@ const ActiveWorkout = () => {
 
       {/* Exercise list */}
       <div className="px-5 py-4 space-y-3">
-        {workout.exercises.map((ex, idx) => {
-          const validCount = ex.sets.filter(s => s.type === 'valid').length;
-          const isComplete = validCount >= ex.targetSets;
+        {(workout.exercises || []).map((ex, idx) => {
+          const validCount = (ex.sets || []).filter(s => s.type === 'valid').length;
+          const isComplete = validCount >= (ex.targetSets || 0);
           return (
             <button
-              key={ex.exerciseId}
+              key={ex.exerciseId || idx}
               className={`w-full bg-card rounded-xl p-4 border text-left card-hover ${isComplete ? 'border-primary/50' : 'border-border'}`}
               onClick={() => setActiveExercise(idx)}
             >
@@ -175,16 +180,16 @@ const ActiveWorkout = () => {
                   <h3 className="font-semibold text-foreground">{ex.exerciseName}</h3>
                   <div className="flex items-center gap-2 mt-1">
                     <span className="text-xs text-muted-foreground">
-                      {validCount}/{ex.targetSets} séries
+                      {validCount}/{ex.targetSets || 0} séries
                     </span>
                     <span className="text-xs text-muted-foreground">·</span>
                     <span className="text-xs text-muted-foreground">
-                      Alvo: {ex.targetReps} reps
+                      Alvo: {ex.targetReps || 0} reps
                     </span>
                   </div>
-                  {ex.sets.length > 0 && (
-                    <div className="flex gap-1.5 mt-2">
-                      {ex.sets.map(s => (
+                  {(ex.sets || []).length > 0 && (
+                    <div className="flex gap-1.5 mt-2 flex-wrap">
+                      {(ex.sets || []).map(s => (
                         <span
                           key={s.id}
                           className={`text-[10px] font-medium px-1.5 py-0.5 rounded ${
@@ -214,11 +219,11 @@ const ActiveWorkout = () => {
       </div>
 
       {/* Exercise Sets Sheet */}
-      {activeExercise !== null && (
+      {activeExercise !== null && (workout.exercises || [])[activeExercise] && (
         <ExerciseSetsSheet
-          exercise={workout.exercises[activeExercise]}
+          exercise={(workout.exercises || [])[activeExercise]}
           exerciseIdx={activeExercise}
-          totalExercises={workout.exercises.length}
+          totalExercises={(workout.exercises || []).length}
           onAddSet={addSet}
           onRemoveSet={removeSet}
           onClose={() => setActiveExercise(null)}
