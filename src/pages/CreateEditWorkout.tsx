@@ -7,6 +7,7 @@ import { useWorkoutTemplates } from '@/hooks/useWorkoutStore';
 import { generateId } from '@/lib/progression';
 import type { WorkoutTemplate, ExerciseTemplate } from '@/types/workout';
 import { toast } from 'sonner';
+import { ExerciseSelector } from '@/components/ExerciseSelector';
 
 const CreateEditWorkout = () => {
   const navigate = useNavigate();
@@ -141,11 +142,10 @@ const CreateEditWorkout = () => {
             <div key={ex.id} className="bg-card rounded-xl p-4 border border-border animate-slide-up">
               <div className="flex items-start gap-2 mb-3">
                 <GripVertical className="h-5 w-5 text-muted-foreground mt-1 shrink-0" />
-                <Input
+                <ExerciseSelector
                   value={ex.name}
-                  onChange={e => updateExercise(idx, { name: e.target.value })}
+                  onChange={val => updateExercise(idx, { name: val })}
                   placeholder="Nome do exercício"
-                  className="bg-secondary border-0 text-foreground h-10"
                 />
                 <button onClick={() => removeExercise(idx)} className="p-2 text-destructive shrink-0">
                   <Trash2 className="h-4 w-4" />
