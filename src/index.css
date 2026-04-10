@@ -116,4 +116,12 @@
     background: hsl(var(--valid) / 0.15);
     color: hsl(var(--valid));
   }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+  }
 }

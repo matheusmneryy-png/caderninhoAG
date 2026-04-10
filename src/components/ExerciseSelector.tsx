@@ -29,8 +29,16 @@ export function ExerciseSelector({ value, onChange, placeholder }: ExerciseSelec
   const [searchValue, setSearchValue] = React.useState("");
   const [selectedGroup, setSelectedGroup] = React.useState<string | null>(null);
 
+  // Clear search and filter when closing
+  React.useEffect(() => {
+    if (!open) {
+      setSearchValue("");
+      setSelectedGroup(null);
+    }
+  }, [open]);
+
   const availableGroups = React.useMemo(() => {
-    return Array.from(new Set(PREDEFINED_EXERCISES.map(ex => ex.group)));
+    return Array.from(new Set(PREDEFINED_EXERCISES.map(ex => ex.group))).sort();
   }, []);
 
   const filteredGroups = React.useMemo(() => {
