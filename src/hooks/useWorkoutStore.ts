@@ -129,7 +129,6 @@ export function useWorkoutTemplates() {
     if (!user) return;
     try {
       await supabase.from('workout_templates').delete().eq('id', id);
-      await fetchTemplates();
     } catch (err) {
       console.error("Erro no supabase delete:", err);
       throw err;
@@ -281,7 +280,6 @@ export function useWorkoutLogs() {
     if (!user) return;
     try {
       await supabase.from('workout_logs').delete().eq('id', id);
-      await fetchLogs();
     } catch (err) {
       console.error("Erro no supabase delete log:", err);
     }

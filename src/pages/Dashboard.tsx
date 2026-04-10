@@ -41,7 +41,8 @@ const Dashboard = () => {
         String.fromCharCode(parseInt(p1, 16))
       );
       const encodedData = btoa(utf8Encoded);
-      const shareUrl = `${window.location.origin}/import?data=${encodeURIComponent(encodedData)}`;
+      const baseUrl = window.location.href.split('#')[0];
+      const shareUrl = `${baseUrl}#/import?data=${encodeURIComponent(encodedData)}`;
 
       if (navigator.share) {
         navigator.share({
