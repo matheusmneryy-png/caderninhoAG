@@ -265,5 +265,27 @@ export function useWorkoutLogs() {
     return null;
   }, [logs]);
 
-  return { logs, addLog, updateLog, getExerciseHistory, getLastPerformance };
+  const deleteLog = useCallback(async (id: string) => {
+    console.log("Deletando log:", id);
+
+    const localData = localStorage.getItem(LOCAL_STORAGE_KEY_LOGS);
+    if (localData) {
+      try { 
+        let localLogs: WorkoutLog[] = JSON.parse(localData);
+        localLogs = localLogs.filter(l => l.id !== id);
+        localStorage.setItem(LOCAL_STORAGE_KEY_LOGS, JSON.stringify(localLogs));
+        setLogs(localLogs);
+      } catch (e) {}
+    }
+
+    if (!user) return;
+    try {
+      await supabase.from('workout_logs').delete().eq('id', id);
+      await fetchLogs();
+    } catch (err) {
+      console.error("Erro no supabase delete log:", err);
+    }
+  }, [user, fetchLogs]);
+
+  return { logs, addLog, updateLog, deleteLog, getExerciseHistory, getLastPerformance };
 }

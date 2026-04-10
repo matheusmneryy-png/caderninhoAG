@@ -4,49 +4,53 @@ export function calculateProgression(
   exercise: ExerciseLog,
   lastPerformance: ExerciseLog | null
 ): ProgressionSuggestion | null {
-  const validSets = exercise.sets.filter(s => s.type === 'valid');
+  const validSets = (exercise.sets || []).filter(s => s.type === 'valid');
   if (validSets.length === 0) return null;
 
-  const avgWeight = validSets.reduce((sum, s) => sum + s.weight, 0) / validSets.length;
-  const allMetTarget = validSets.length >= exercise.targetSets &&
-    validSets.every(s => s.reps >= exercise.targetReps);
+  // Usa o peso da última série válida ao invés da média
+  const lastWeight = validSets[validSets.length - 1].weight;
+  
+  const allMetTarget = validSets.length >= (exercise.targetSets || 0) &&
+    validSets.every(s => s.reps >= (exercise.targetReps || 0));
 
   if (allMetTarget) {
-    const increase = avgWeight >= 40 ? 5 : 2.5;
+    const increase = lastWeight >= 40 ? 5 : 2.5;
+    const suggested = parseFloat((lastWeight + increase).toFixed(2));
     return {
       exerciseName: exercise.exerciseName,
-      currentWeight: avgWeight,
-      suggestedWeight: avgWeight + increase,
+      currentWeight: parseFloat(lastWeight.toFixed(2)),
+      suggestedWeight: suggested,
       reason: 'increase',
-      message: `Meta atingida! Aumente para ${avgWeight + increase}kg`,
+      message: `Meta atingida! Aumente para ${suggested.toFixed(2)}kg`,
     };
   }
 
   if (lastPerformance) {
-    const lastValid = lastPerformance.sets.filter(s => s.type === 'valid');
-    const lastAvg = lastValid.length > 0
+    const lastValid = (lastPerformance.sets || []).filter(s => s.type === 'valid');
+    const lastAvgReps = lastValid.length > 0
       ? lastValid.reduce((sum, s) => sum + s.reps, 0) / lastValid.length
       : 0;
-    const currentAvg = validSets.reduce((sum, s) => sum + s.reps, 0) / validSets.length;
+    const currentAvgReps = validSets.reduce((sum, s) => sum + s.reps, 0) / validSets.length;
 
-    if (lastAvg > 0 && currentAvg < lastAvg * 0.8) {
-      const decrease = avgWeight >= 40 ? 5 : 2.5;
+    if (lastAvgReps > 0 && currentAvgReps < lastAvgReps * 0.8) {
+      const decrease = lastWeight >= 40 ? 5 : 2.5;
+      const suggested = parseFloat(Math.max(0, lastWeight - decrease).toFixed(2));
       return {
         exerciseName: exercise.exerciseName,
-        currentWeight: avgWeight,
-        suggestedWeight: Math.max(0, avgWeight - decrease),
+        currentWeight: parseFloat(lastWeight.toFixed(2)),
+        suggestedWeight: suggested,
         reason: 'decrease',
-        message: `Desempenho caiu. Considere reduzir para ${Math.max(0, avgWeight - decrease)}kg`,
+        message: `Desempenho caiu. Considere reduzir para ${suggested.toFixed(2)}kg`,
       };
     }
   }
 
   return {
     exerciseName: exercise.exerciseName,
-    currentWeight: avgWeight,
-    suggestedWeight: avgWeight,
+    currentWeight: parseFloat(lastWeight.toFixed(2)),
+    suggestedWeight: parseFloat(lastWeight.toFixed(2)),
     reason: 'maintain',
-    message: `Mantenha ${avgWeight}kg e tente atingir a meta`,
+    message: `Mantenha ${lastWeight.toFixed(2)}kg e tente atingir a meta`,
   };
 }
 

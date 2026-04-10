@@ -35,8 +35,13 @@ const Dashboard = () => {
         }))
       };
       
-      const encodedData = btoa(encodeURIComponent(JSON.stringify(shareData)));
-      const shareUrl = `${window.location.origin}/import?data=${encodedData}`;
+      // Safe Base64 encoding for UTF-8 and URL parameters
+      const jsonStr = JSON.stringify(shareData);
+      const utf8Encoded = encodeURIComponent(jsonStr).replace(/%([0-9A-F]{2})/g, (match, p1) => 
+        String.fromCharCode(parseInt(p1, 16))
+      );
+      const encodedData = btoa(utf8Encoded);
+      const shareUrl = `${window.location.origin}/import?data=${encodeURIComponent(encodedData)}`;
 
       if (navigator.share) {
         navigator.share({

@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, ChevronDown, History as HistoryIcon, Dumbbell, Activity } from 'lucide-react';
+import { ArrowLeft, ChevronDown, History as HistoryIcon, Dumbbell, Activity, Trash2 } from 'lucide-react';
 import { useWorkoutLogs } from '@/hooks/useWorkoutStore';
 import { formatDuration } from '@/lib/progression';
+import { toast } from 'sonner';
 
 const HistoryPage = () => {
   const navigate = useNavigate();
-  const { logs } = useWorkoutLogs();
+  const { logs, deleteLog } = useWorkoutLogs();
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
   const finishedLogs = logs.filter(l => l.finishedAt);
@@ -72,7 +73,7 @@ const HistoryPage = () => {
             const date = new Date(log.finishedAt!);
 
             return (
-              <div key={log.id} className="bg-card rounded-xl border border-border overflow-hidden">
+              <div key={log.id} className="bg-card rounded-xl border border-border overflow-hidden relative">
                 <button
                   className="w-full p-4 text-left flex items-center justify-between"
                   onClick={() => setExpandedId(isExpanded ? null : log.id)}
@@ -85,6 +86,20 @@ const HistoryPage = () => {
                   </div>
                   <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
                 </button>
+                <div className="absolute top-4 right-12 z-10">
+                  <button 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      if (window.confirm('Deseja realmente excluir este registro de treino?')) {
+                        deleteLog(log.id);
+                        toast.success('Registro excluído');
+                      }
+                    }}
+                    className="p-1 text-muted-foreground hover:text-destructive transition-colors"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
                 {isExpanded && (
                   <div className="px-4 pb-4 space-y-2 animate-slide-up">
                     {log.exercises.map(ex => {

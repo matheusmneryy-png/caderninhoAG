@@ -26,7 +26,13 @@ const ImportWorkout = () => {
     }
 
     try {
-      const decoded = JSON.parse(decodeURIComponent(atob(data)));
+      const decodedBase64 = atob(data);
+      const utf8String = decodeURIComponent(
+        Array.prototype.map.call(decodedBase64, (c: string) => {
+          return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+        }).join('')
+      );
+      const decoded = JSON.parse(utf8String);
       if (!decoded.name || !Array.isArray(decoded.exercises)) {
         throw new Error('Formato de treino inválido');
       }

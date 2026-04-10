@@ -127,7 +127,7 @@ const StatsPage = () => {
           <div className="bg-card rounded-xl p-4 border border-border flex flex-col justify-between">
             <h3 className="text-xs text-muted-foreground mb-2 flex items-center gap-1.5"><Zap className="h-3 w-3" /> Volume Levantado</h3>
             <p className="text-3xl font-bold text-foreground">
-              {stats.totalVolume > 1000 ? (stats.totalVolume / 1000).toFixed(1) + 'k' : stats.totalVolume}<span className="text-sm font-normal text-muted-foreground ml-1">kg</span>
+              {stats.totalVolume > 1000 ? (stats.totalVolume / 1000).toFixed(2) + 'k' : stats.totalVolume.toFixed(2)}<span className="text-sm font-normal text-muted-foreground ml-1">kg</span>
             </p>
           </div>
           <div className="bg-card rounded-xl p-4 border border-border flex flex-col justify-between">
@@ -227,7 +227,7 @@ const StatsPage = () => {
                   </div>
                   <div className="flex flex-col items-end">
                     <span className="text-[10px] text-muted-foreground uppercase tracking-wider font-semibold">Atual</span>
-                    <span className="text-sm font-bold text-foreground">{s.currentWeight}kg</span>
+                    <span className="text-sm font-bold text-foreground">{s.currentWeight.toFixed(2)}kg</span>
                   </div>
                 </div>
               ))}
