@@ -27,15 +27,21 @@ interface ExerciseSelectorProps {
 export function ExerciseSelector({ value, onChange, placeholder }: ExerciseSelectorProps) {
   const [open, setOpen] = React.useState(false);
   const [searchValue, setSearchValue] = React.useState("");
+  const [selectedGroup, setSelectedGroup] = React.useState<string | null>(null);
 
-  const groups = React.useMemo(() => {
+  const availableGroups = React.useMemo(() => {
+    return Array.from(new Set(PREDEFINED_EXERCISES.map(ex => ex.group)));
+  }, []);
+
+  const filteredGroups = React.useMemo(() => {
     const grouped: Record<string, ExerciseInfo[]> = {};
     PREDEFINED_EXERCISES.forEach((ex) => {
+      if (selectedGroup && ex.group !== selectedGroup) return;
       if (!grouped[ex.group]) grouped[ex.group] = [];
       grouped[ex.group].push(ex);
     });
     return grouped;
-  }, []);
+  }, [selectedGroup]);
 
   return (
     <div className="w-full relative">
@@ -55,6 +61,35 @@ export function ExerciseSelector({ value, onChange, placeholder }: ExerciseSelec
         </PopoverTrigger>
         <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0 z-[100]" align="start">
           <Command>
+            <div className="px-3 pt-3 pb-2 border-b">
+              <div className="flex gap-1.5 overflow-x-auto pb-1 no-scrollbar">
+                <button
+                  onClick={() => setSelectedGroup(null)}
+                  className={cn(
+                    "shrink-0 px-2.5 py-1 rounded-md text-[10px] font-medium border transition-colors",
+                    !selectedGroup 
+                      ? "bg-primary text-primary-foreground border-primary" 
+                      : "bg-secondary text-muted-foreground border-transparent hover:bg-secondary/80"
+                  )}
+                >
+                  Todos
+                </button>
+                {availableGroups.map(group => (
+                  <button
+                    key={group}
+                    onClick={() => setSelectedGroup(group)}
+                    className={cn(
+                      "shrink-0 px-2.5 py-1 rounded-md text-[10px] font-medium border transition-colors",
+                      selectedGroup === group 
+                        ? "bg-primary text-primary-foreground border-primary" 
+                        : "bg-secondary text-muted-foreground border-transparent hover:bg-secondary/80"
+                    )}
+                  >
+                    {group}
+                  </button>
+                ))}
+              </div>
+            </div>
             <CommandInput 
               placeholder="Procurar exercício..." 
               value={searchValue}
@@ -78,7 +113,7 @@ export function ExerciseSelector({ value, onChange, placeholder }: ExerciseSelec
                   </Button>
                 </div>
               </CommandEmpty>
-              {Object.entries(groups).map(([group, items]) => (
+              {Object.entries(filteredGroups).map(([group, items]) => (
                 <CommandGroup key={group} heading={group}>
                   {items.map((item) => (
                     <CommandItem
