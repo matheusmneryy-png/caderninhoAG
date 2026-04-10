@@ -57,6 +57,7 @@ export const PREDEFINED_EXERCISES: ExerciseInfo[] = [
   { name: 'Coice no Cabo', group: 'PERNAS', type: 'Cabo' },
   { name: 'Elevação Pélvica (Barra)', group: 'PERNAS', type: 'Peso Livre' },
   { name: 'Elevação Pélvica (Halter/Kettlebell)', group: 'PERNAS', type: 'Peso Livre' },
+  { name: 'Elevação Pélvica na Máquina com Trilho', group: 'PERNAS', type: 'Máquina' },
   { name: 'Elevação Pélvica Unilateral', group: 'PERNAS', type: 'Peso Corporal' },
   { name: 'Extensora', group: 'PERNAS', type: 'Máquina' },
   { name: 'Flexora Deitado', group: 'PERNAS', type: 'Máquina' },

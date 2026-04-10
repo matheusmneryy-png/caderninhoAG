@@ -26,13 +26,11 @@ interface ExerciseSelectorProps {
 
 export function ExerciseSelector({ value, onChange, placeholder }: ExerciseSelectorProps) {
   const [open, setOpen] = React.useState(false);
-  const [searchValue, setSearchValue] = React.useState("");
   const [selectedGroup, setSelectedGroup] = React.useState<string | null>(null);
 
-  // Clear search and filter when closing
+  // Clear filter when closing
   React.useEffect(() => {
     if (!open) {
-      setSearchValue("");
       setSelectedGroup(null);
     }
   }, [open]);
@@ -98,27 +96,10 @@ export function ExerciseSelector({ value, onChange, placeholder }: ExerciseSelec
                 ))}
               </div>
             </div>
-            <CommandInput 
-              placeholder="Procurar exercício..." 
-              value={searchValue}
-              onValueChange={setSearchValue}
-            />
-            <CommandList className="max-h-[300px]">
+            <CommandList className="max-h-[350px]">
               <CommandEmpty>
-                <div className="py-2 px-4">
-                  <p className="text-sm text-muted-foreground mb-2">Nenhum exercício encontrado.</p>
-                  <Button 
-                    size="sm" 
-                    variant="secondary" 
-                    className="w-full text-xs"
-                    onClick={() => {
-                      onChange(searchValue);
-                      setOpen(false);
-                      setSearchValue("");
-                    }}
-                  >
-                    Usar "{searchValue}"
-                  </Button>
+                <div className="py-6 px-4 text-center">
+                  <p className="text-sm text-muted-foreground">Selecione uma categoria acima.</p>
                 </div>
               </CommandEmpty>
               {Object.entries(filteredGroups).map(([group, items]) => (
@@ -130,7 +111,6 @@ export function ExerciseSelector({ value, onChange, placeholder }: ExerciseSelec
                       onSelect={(currentValue) => {
                         onChange(currentValue);
                         setOpen(false);
-                        setSearchValue("");
                       }}
                       className="flex items-center justify-between"
                     >
