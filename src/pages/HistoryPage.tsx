@@ -2,8 +2,9 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, ChevronDown, History as HistoryIcon, Dumbbell, Activity, Trash2 } from 'lucide-react';
 import { useWorkoutLogs } from '@/hooks/useWorkoutStore';
-import { formatDuration } from '@/lib/progression';
+import { formatDuration, calculateProgression } from '@/lib/progression';
 import { toast } from 'sonner';
+import { Lightbulb, StickyNote } from 'lucide-react';
 
 const HistoryPage = () => {
   const navigate = useNavigate();
@@ -126,6 +127,30 @@ const HistoryPage = () => {
                             <p className="text-[10px] text-muted-foreground mt-1">
                               Melhor: {Math.max(...validSets.map(s => s.weight))}kg
                             </p>
+                          )}
+                          
+                          {/* Dica de Progressão */}
+                          {(() => {
+                            const tip = calculateProgression(ex, null);
+                            if (!tip) return null;
+                            return (
+                              <div className="mt-2 flex items-start gap-1.5 bg-background/50 rounded p-1.5 border border-primary/10">
+                                <Lightbulb className="h-3 w-3 text-primary shrink-0 mt-0.5" />
+                                <p className="text-[10px] text-primary/90 font-medium leading-tight">
+                                  {tip.message}
+                                </p>
+                              </div>
+                            );
+                          })()}
+
+                          {/* Observações */}
+                          {ex.notes && (
+                            <div className="mt-2 flex items-start gap-1.5 bg-yellow-500/10 rounded p-1.5 border border-yellow-500/20">
+                              <StickyNote className="h-3 w-3 text-yellow-500 shrink-0 mt-0.5" />
+                              <p className="text-[10px] text-yellow-200/90 leading-tight italic">
+                                "{ex.notes}"
+                              </p>
+                            </div>
                           )}
                         </div>
                       );

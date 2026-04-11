@@ -118,6 +118,16 @@ const ActiveWorkout = () => {
       return { ...prev, exercises };
     });
   }, []);
+  
+  const updateNotes = useCallback((exerciseIdx: number, notes: string) => {
+    setWorkout(prev => {
+      if (!prev || !prev.exercises) return prev;
+      const exercises = [...prev.exercises];
+      if (!exercises[exerciseIdx]) return prev;
+      exercises[exerciseIdx] = { ...exercises[exerciseIdx], notes };
+      return { ...prev, exercises };
+    });
+  }, []);
 
   const finishWorkout = () => {
     if (!workout) return;
@@ -229,6 +239,7 @@ const ActiveWorkout = () => {
           onClose={() => setActiveExercise(null)}
           onNext={handleNext}
           onFinish={finishWorkout}
+          onUpdateNotes={updateNotes}
           getLastPerformance={getLastPerformance}
         />
       )}

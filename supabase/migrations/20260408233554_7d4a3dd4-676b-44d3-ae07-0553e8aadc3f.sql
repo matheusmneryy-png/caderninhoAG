@@ -50,6 +50,7 @@ ALTER TABLE public.workout_logs ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Users can view their own logs" ON public.workout_logs FOR SELECT USING (auth.uid() = user_id);
 CREATE POLICY "Users can create their own logs" ON public.workout_logs FOR INSERT WITH CHECK (auth.uid() = user_id);
 CREATE POLICY "Users can update their own logs" ON public.workout_logs FOR UPDATE USING (auth.uid() = user_id);
+CREATE POLICY "Users can delete their own logs" ON public.workout_logs FOR DELETE USING (auth.uid() = user_id);
 
 -- Auto-create profile on signup
 CREATE OR REPLACE FUNCTION public.handle_new_user()

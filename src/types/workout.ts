@@ -29,6 +29,7 @@ export interface ExerciseLog {
   targetSets: number;
   targetReps: number;
   sets: ExerciseSet[];
+  notes?: string;
 }
 
 export interface WorkoutLog {
@@ -38,6 +39,7 @@ export interface WorkoutLog {
   startedAt: string;
   finishedAt?: string;
   exercises: ExerciseLog[];
+  notes?: string;
 }
 
 export interface ProgressionSuggestion {

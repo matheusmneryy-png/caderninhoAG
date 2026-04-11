@@ -13,6 +13,7 @@ interface Props {
   onClose: () => void;
   onNext: () => void;
   onFinish: () => void;
+  onUpdateNotes: (idx: number, notes: string) => void;
   getLastPerformance: (name: string) => ExerciseLog | null;
 }
 
@@ -22,7 +23,7 @@ const setTypeConfig = {
   valid: { label: 'Série Válida', icon: Target, className: 'set-badge-valid' },
 };
 
-const ExerciseSetsSheet = ({ exercise, exerciseIdx, totalExercises, onAddSet, onRemoveSet, onClose, onNext, onFinish, getLastPerformance }: Props) => {
+const ExerciseSetsSheet = ({ exercise, exerciseIdx, totalExercises, onAddSet, onRemoveSet, onClose, onNext, onFinish, onUpdateNotes, getLastPerformance }: Props) => {
   const lastPerf = getLastPerformance(exercise.exerciseName);
   const lastValidSets = lastPerf?.sets.filter(s => s.type === 'valid') || [];
   const lastWeight = lastValidSets.length > 0 ? lastValidSets[0].weight : 0;
@@ -142,6 +143,17 @@ const ExerciseSetsSheet = ({ exercise, exerciseIdx, totalExercises, onAddSet, on
               );
             })
           )}
+        </div>
+        
+        {/* Notes / Observation */}
+        <div className="space-y-2">
+          <h3 className="text-sm font-semibold text-foreground">Observações / Técnicas</h3>
+          <textarea
+            className="w-full bg-card border border-border rounded-lg p-3 text-sm text-foreground focus:ring-1 focus:ring-primary outline-none min-h-[80px]"
+            placeholder="Ex: Cluster set, Drop set, Rest-pause, ou alguma dificuldade..."
+            value={exercise.notes || ''}
+            onChange={(e) => onUpdateNotes(exerciseIdx, e.target.value)}
+          />
         </div>
       </div>
 
