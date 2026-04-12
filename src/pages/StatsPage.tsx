@@ -1,6 +1,6 @@
 import { useMemo, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Dumbbell, History, Activity, TrendingUp, TrendingDown, Minus, Clock, Zap } from 'lucide-react';
+import { Dumbbell, History, Activity, TrendingUp, TrendingDown, Minus, Clock, Zap, User } from 'lucide-react';
 import { useWorkoutLogs } from '@/hooks/useWorkoutStore';
 import { formatDuration, calculateProgression } from '@/lib/progression';
 import type { ProgressionSuggestion } from '@/types/workout';
@@ -249,6 +249,10 @@ const StatsPage = () => {
         <button onClick={() => navigate('/stats')} className="flex flex-col items-center gap-1 text-primary">
           <Activity className="h-5 w-5" />
           <span className="text-[10px] font-medium">Estatísticas</span>
+        </button>
+        <button onClick={() => navigate('/profile')} className="flex flex-col items-center gap-1 text-muted-foreground">
+          <User className="h-5 w-5" />
+          <span className="text-[10px] font-medium">Perfil</span>
         </button>
       </div>
     </div>

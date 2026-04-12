@@ -1,7 +1,8 @@
 import { useLocation, useNavigate } from 'react-router-dom';
-import { ArrowLeft, TrendingUp, TrendingDown, Minus, Clock, Dumbbell, Share2 } from 'lucide-react';
+import { ArrowLeft, TrendingUp, TrendingDown, Minus, Clock, Dumbbell, Share2, Flame } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useWorkoutLogs } from '@/hooks/useWorkoutStore';
+import { useProfile } from '@/hooks/useProfile';
 import { calculateProgression, formatDuration } from '@/lib/progression';
 import type { WorkoutLog, ProgressionSuggestion } from '@/types/workout';
 
@@ -9,6 +10,7 @@ const WorkoutSummary = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { getLastPerformance } = useWorkoutLogs();
+  const { profile, estimateCalories } = useProfile();
 
   const workout = location.state?.workout as WorkoutLog | undefined;
 
@@ -20,6 +22,8 @@ const WorkoutSummary = () => {
   const duration = workout.finishedAt
     ? Math.floor((new Date(workout.finishedAt).getTime() - new Date(workout.startedAt).getTime()) / 1000)
     : 0;
+
+  const calories = estimateCalories(profile?.weight || null, duration);
 
   const totalSets = workout.exercises.reduce((sum, ex) => sum + ex.sets.length, 0);
   const totalValidSets = workout.exercises.reduce(
@@ -40,10 +44,10 @@ const WorkoutSummary = () => {
 
     if (navigator.share) {
       try {
-        await navigator.share({ title: workout.templateName, text });
+        await navigator.share({ title: workout.templateName, text: text + (calories > 0 ? `\n🔥 ${calories} kcal estimadas` : '') });
       } catch {}
     } else {
-      await navigator.clipboard.writeText(text);
+      await navigator.clipboard.writeText(text + (calories > 0 ? `\n🔥 ${calories} kcal estimadas` : ''));
     }
   };
 
@@ -66,7 +70,7 @@ const WorkoutSummary = () => {
         {/* Stats */}
         <div className="bg-card rounded-xl p-5 border border-border text-center">
           <h2 className="text-lg font-bold text-foreground mb-4">{workout.templateName}</h2>
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-4 gap-2">
             <div>
               <Clock className="h-5 w-5 text-primary mx-auto mb-1" />
               <p className="text-lg font-bold text-foreground">{formatDuration(duration)}</p>
@@ -83,6 +87,11 @@ const WorkoutSummary = () => {
               </div>
               <p className="text-lg font-bold text-foreground">{totalSets}</p>
               <p className="text-[10px] text-muted-foreground">Séries</p>
+            </div>
+            <div>
+              <Flame className="h-5 w-5 text-orange-500 mx-auto mb-1" />
+              <p className="text-lg font-bold text-foreground">{calories > 0 ? calories : '--'}</p>
+              <p className="text-[10px] text-muted-foreground">Kcal Est.</p>
             </div>
           </div>
         </div>

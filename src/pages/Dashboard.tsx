@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Play, History, Dumbbell, RotateCcw, LogOut, Activity, Share2, Trash2 } from 'lucide-react';
+import { Plus, Play, History, Dumbbell, RotateCcw, LogOut, Activity, Share2, Trash2, User } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useWorkoutTemplates } from '@/hooks/useWorkoutStore';
 import { getActiveWorkout } from '@/pages/ActiveWorkout';
@@ -189,6 +189,10 @@ const Dashboard = () => {
         <button onClick={() => navigate('/stats')} className="flex flex-col items-center gap-1 text-muted-foreground">
           <Activity className="h-5 w-5" />
           <span className="text-[10px] font-medium">Estatísticas</span>
+        </button>
+        <button onClick={() => navigate('/profile')} className="flex flex-col items-center gap-1 text-muted-foreground">
+          <User className="h-5 w-5" />
+          <span className="text-[10px] font-medium">Perfil</span>
         </button>
       </div>
 

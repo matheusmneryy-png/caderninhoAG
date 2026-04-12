@@ -12,6 +12,7 @@ import HistoryPage from "./pages/HistoryPage";
 import StatsPage from "./pages/StatsPage";
 import ImportWorkout from "./pages/ImportWorkout";
 import AuthPage from "./pages/AuthPage";
+import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -39,6 +40,7 @@ const App = () => (
             <Route path="/summary/:id" element={<ProtectedRoute><WorkoutSummary /></ProtectedRoute>} />
             <Route path="/history" element={<ProtectedRoute><HistoryPage /></ProtectedRoute>} />
             <Route path="/stats" element={<ProtectedRoute><StatsPage /></ProtectedRoute>} />
+            <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
             <Route path="/import" element={<ImportWorkout />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
